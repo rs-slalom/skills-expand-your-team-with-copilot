@@ -304,6 +304,20 @@ document.addEventListener("DOMContentLoaded", () => {
     return details.schedule;
   }
 
+  // Copy share details to clipboard for browsers without native share support
+  async function copyShareDetailsToClipboard(shareText, shareUrl) {
+    try {
+      await navigator.clipboard.writeText(`${shareText}\n${shareUrl}`);
+      showMessage("Share details copied so you can send them to friends.", "success");
+    } catch (error) {
+      console.error("Clipboard copy failed:", error);
+      showMessage(
+        "Sharing is not supported on this browser. Please copy the page link manually.",
+        "error"
+      );
+    }
+  }
+
   // Function to determine activity type (this would ideally come from backend)
   function getActivityType(activityName, description) {
     const name = activityName.toLowerCase();
@@ -498,6 +512,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Format the schedule using the new helper function
     const formattedSchedule = formatSchedule(details);
+    const shareText = `Check out ${name} at Mergington High School. Schedule: ${formattedSchedule}`;
+    const shareUrl = `${window.location.origin}${window.location.pathname}`;
+    const encodedShareText = encodeURIComponent(shareText);
+    const encodedShareUrl = encodeURIComponent(shareUrl);
+    const emailSubject = encodeURIComponent(`Join me at ${name}`);
+    const emailBody = encodeURIComponent(`${shareText}\n\n${shareUrl}`);
 
     // Create activity tag
     const tagHtml = `
@@ -515,6 +535,34 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="capacity-text">
           <span>${takenSpots} enrolled</span>
           <span>${spotsLeft} spots left</span>
+        </div>
+      </div>
+    `;
+
+    const shareButtons = `
+      <div class="social-share">
+        <p class="share-label">Share with friends:</p>
+        <div class="share-buttons">
+          <button type="button" class="share-button native-share-button">Share</button>
+          <a
+            class="share-link whatsapp-share"
+            href="https://wa.me/?text=${encodedShareText}%20${encodedShareUrl}"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            WhatsApp
+          </a>
+          <a
+            class="share-link facebook-share"
+            href="https://www.facebook.com/sharer/sharer.php?u=${encodedShareUrl}&quote=${encodedShareText}"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Facebook
+          </a>
+          <a class="share-link email-share" href="mailto:?subject=${emailSubject}&body=${emailBody}">
+            Email
+          </a>
         </div>
       </div>
     `;
@@ -569,6 +617,7 @@ document.addEventListener("DOMContentLoaded", () => {
         `
         }
       </div>
+      ${shareButtons}
     `;
 
     // Add click handlers for delete buttons
@@ -586,6 +635,28 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       }
     }
+
+    const nativeShareButton = activityCard.querySelector(".native-share-button");
+    nativeShareButton.addEventListener("click", async () => {
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: `Mergington Activity: ${name}`,
+            text: shareText,
+            url: shareUrl,
+          });
+          showMessage("Thanks for sharing this activity!", "success");
+          return;
+        } catch (error) {
+          if (error && error.name === "AbortError") {
+            return;
+          }
+          console.error("Native share failed:", error);
+        }
+      }
+
+      await copyShareDetailsToClipboard(shareText, shareUrl);
+    });
 
     activitiesList.appendChild(activityCard);
   }
