@@ -20,6 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const userInfo = document.getElementById("user-info");
   const displayName = document.getElementById("display-name");
   const logoutButton = document.getElementById("logout-button");
+  const themeToggleButton = document.getElementById("theme-toggle-button");
   const loginModal = document.getElementById("login-modal");
   const loginForm = document.getElementById("login-form");
   const closeLoginModal = document.querySelector(".close-login-modal");
@@ -166,6 +167,29 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  function updateThemeUI(theme) {
+    const themeIcon = themeToggleButton.querySelector(".theme-icon");
+    const themeLabel = themeToggleButton.querySelector("span:last-child");
+    themeIcon.textContent = theme === "dark" ? "☀️" : "🌙";
+    themeLabel.textContent = theme === "dark" ? "Light mode" : "Dark mode";
+  }
+
+  function setTheme(theme) {
+    const isDark = theme === "dark";
+    document.body.classList.toggle("dark-mode", isDark);
+    localStorage.setItem("themePreference", isDark ? "dark" : "light");
+    updateThemeUI(isDark ? "dark" : "light");
+  }
+
+  function initializeTheme() {
+    const savedTheme = localStorage.getItem("themePreference");
+    const systemPrefersDark = window.matchMedia(
+      "(prefers-color-scheme: dark)"
+    ).matches;
+    const initialTheme = savedTheme || (systemPrefersDark ? "dark" : "light");
+    setTheme(initialTheme);
+  }
+
   // Login function
   async function login(username, password) {
     try {
@@ -238,6 +262,12 @@ document.addEventListener("DOMContentLoaded", () => {
   loginButton.addEventListener("click", openLoginModal);
   logoutButton.addEventListener("click", logout);
   closeLoginModal.addEventListener("click", closeLoginModalHandler);
+  themeToggleButton.addEventListener("click", () => {
+    const nextTheme = document.body.classList.contains("dark-mode")
+      ? "light"
+      : "dark";
+    setTheme(nextTheme);
+  });
 
   // Close login modal when clicking outside
   window.addEventListener("click", (event) => {
@@ -862,6 +892,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   // Initialize app
+  initializeTheme();
   checkAuthentication();
   initializeFilters();
   fetchActivities();

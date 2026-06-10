@@ -32,6 +32,16 @@
   --info-light: #d1ecf1;
 }
 
+body.dark-mode {
+  --background: #121212;
+  --surface: #1e1e1e;
+  --text-primary: #f1f1f1;
+  --text-secondary: #c4c4c4;
+  --border: #3a3a3a;
+  --border-light: #2a2a2a;
+  --border-focus: #4a4a4a;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -617,6 +627,9 @@ footer {
   position: absolute;
   top: 10px;
   right: 15px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
 }
 
 #user-status {
